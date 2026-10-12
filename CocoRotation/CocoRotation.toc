@@ -1,0 +1,13 @@
+## Interface: 50504, 50503, 50502, 50501, 50500
+## Title: CocoRotation
+## Notes: Asistente de Druida Equilibrio para Mists of Pandaria Classic
+## Author: CocoRotation
+## Version: 1.2.1
+## SavedVariables: CocoRotationDB
+## OptionalDeps:
+Engine.lua
+CocoRotation.lua
+Extras.lua
+
+
+

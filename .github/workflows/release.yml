@@ -1,0 +1,44 @@
+name: Test and publish addon
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cocorotation-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua 5.1
+        run: sudo apt-get update && sudo apt-get install -y lua5.1
+      - name: Verify addon
+        run: lua5.1 tests/test.lua
+  release:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package installable ZIP
+        run: |
+          mkdir -p dist
+          zip -r dist/CocoRotation.zip CocoRotation
+          unzip -t dist/CocoRotation.zip
+      - name: Publish release for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="build-${GITHUB_SHA}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/CocoRotation.zip --clobber
+          else
+            gh release create "$tag" dist/CocoRotation.zip --target "$GITHUB_SHA" --title "CocoRotation ${GITHUB_SHA:0:7}" --notes "ZIP instalable generado automáticamente tras aprobar las pruebas. Extrae CocoRotation en Interface/AddOns y ejecuta /reload." --latest
+          fi
